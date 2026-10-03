@@ -9,7 +9,7 @@ Responsive React/TypeScript landing and login pages, a daily.dev-inspired authen
 - Dark reading feed with original starter guides, topic filters, search, and account-specific saved articles.
 - Bookshelf with three complete demo books, an onsite chapter reader, contents, font controls, night mode, and saved reading progress. There is no file-download action. Browser-readable content can still be copied; this is not DRM.
 - Private mindmaps with editable titles and ideas, branches, zoom, explicit save, version conflict checks, and unsaved-change protection.
-- One horizontal workspace menu, topic filters in the feed, and a narrow desktop sidebar for reading progress. Reading progress, saved articles, and mindmaps persist in PostgreSQL for the signed-in account.
+- One horizontal workspace menu, a horizontal reading-progress tile above the feed, and an expandable sidebar with clearly labelled upcoming-feature placeholders. The sidebar starts as a 56-pixel icon rail, expands to 200 pixels, and remembers the preference. Reading progress, saved articles, and mindmaps persist in PostgreSQL for the signed-in account.
 
 Keycloak owns credentials and signs users in through OpenID Connect authorization code flow. Spring Boot validates the identity and keeps an HttpOnly session. Tokens stay on the server. Sign-out ends both the application and Keycloak sessions. CSRF protects state-changing requests.
 

@@ -1,7 +1,7 @@
 import {useEffect,useRef} from 'react';
 import type {ReactNode} from 'react';
 import type {Article} from './feed';
-export type IconName='feed'|'saved'|'books'|'map'|'search'|'arrow'|'plus'|'close'|'logout'|'menu'|'check'|'clock'|'spark'|'chevron'|'minus';
+export type IconName='feed'|'saved'|'books'|'map'|'note'|'search'|'arrow'|'plus'|'close'|'logout'|'menu'|'check'|'clock'|'spark'|'chevron'|'minus';
 export function Glyph({name,size=20}:{name:IconName;size?:number}){
  const paths:Record<IconName,ReactNode>={
  feed:<><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></>,
@@ -9,6 +9,7 @@ export function Glyph({name,size=20}:{name:IconName;size?:number}){
  books:<><path d="M12 5C8 2 4 3 3 4v15c3-1 6-1 9 1m0-15c4-3 8-2 9-1v15c-3-1-6-1-9 1V5Z"/><path d="M6 8h3m6 0h3"/></>,
  map:<><path d="M6 12h5m0 0V5h7m-7 7v7h7"/><rect x="2" y="9" width="5" height="6" rx="1"/><rect x="17" y="2" width="5" height="6" rx="1"/><rect x="17" y="16" width="5" height="6" rx="1"/></>,
  search:<><circle cx="10" cy="10" r="6"/><path d="m15 15 6 6"/></>,
+ note:<><path d="M14 3H5v18h14V8l-5-5Z"/><path d="M14 3v5h5M8 12h8M8 16h5"/></>,
  arrow:<path d="M4 12h16m-6-6 6 6-6 6"/>,plus:<path d="M12 5v14M5 12h14"/>,close:<path d="m6 6 12 12M6 18 18 6"/>,
  logout:<path d="M10 4H4v16h6m4-13 5 5-5 5m-5-5h10"/>,menu:<path d="M3 6h18M3 12h18M3 18h18"/>,
  check:<path d="m5 12 4 4L19 6"/>,clock:<><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></>,
