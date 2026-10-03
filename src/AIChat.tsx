@@ -1,5 +1,6 @@
 import {useEffect,useRef,useState} from 'react';
 import type {FormEvent} from 'react';
+import {createPortal} from 'react-dom';
 import {Glyph} from './WorkspaceUI';
 
 type Message={id:number;role:'assistant'|'user';text:string};
@@ -21,12 +22,12 @@ export function AIChat(){
  function submit(event:FormEvent){event.preventDefault();send(input);}
  return <>
   <button ref={launcher} className={'kb-ai-chat-launcher'+(open?' active':'')} aria-label={open?'Close AI chat':'Open AI chat'} title="AI chat · Demo" aria-expanded={open} aria-controls="kb-ai-chat-panel" onClick={()=>open?close():setOpen(true)}><Glyph name="chat" size={20}/><span>AI chat<small>Learning assistant</small></span></button>
-  {open&&<section id="kb-ai-chat-panel" className="kb-ai-chat-panel" role="dialog" aria-label="AI learning assistant" onKeyDown={event=>{if(event.key==='Escape'){event.stopPropagation();close();}}}>
+  {open&&createPortal(<section id="kb-ai-chat-panel" className="kb-ai-chat-panel" role="dialog" aria-label="AI learning assistant" onKeyDown={event=>{if(event.key==='Escape'){event.stopPropagation();close();}}}>
    <header><span className="kb-ai-chat-mark"><Glyph name="spark" size={20}/></span><div><h2>Your learning assistant</h2><span>AI chat · UI demo</span></div><button className="kb-icon-button" aria-label="Close chat panel" onClick={close}><Glyph name="close" size={18}/></button></header>
    <p className="kb-ai-chat-notice">Sample responses · AI integration coming later</p>
    <div className="kb-ai-chat-transcript" ref={transcript} role="log" aria-label="Chat messages" aria-live="polite" aria-relevant="additions">{messages.map(message=><div className={'kb-chat-message '+message.role} key={message.id}><span>{message.role==='user'?'You':'Assistant · Demo'}</span><p>{message.text}</p></div>)}</div>
    {messages.length===1&&<div className="kb-ai-chat-suggestions" aria-label="Suggested messages">{['Help me study a book','Practice an interview','Improve my resume'].map(text=><button key={text} onClick={()=>send(text)}>{text}<Glyph name="arrow" size={13}/></button>)}</div>}
    <form onSubmit={submit}><label className="kb-overline" htmlFor="kb-chat-input">YOUR MESSAGE</label><div><textarea id="kb-chat-input" ref={composer} rows={2} maxLength={2000} placeholder="Ask about your learning…" value={input} onChange={event=>setInput(event.target.value)} onKeyDown={event=>{if(event.key==='Enter'&&!event.shiftKey&&!event.nativeEvent.isComposing){event.preventDefault();send(input);}}}/><button className="kb-icon-button" type="submit" disabled={!input.trim()} aria-label="Send message"><Glyph name="arrow" size={19}/></button></div><footer><span>Enter to send · Shift + Enter for a new line</span><button type="button" onClick={()=>{setMessages([welcome]);setInput('');composer.current?.focus();}}>Clear chat</button></footer></form>
-  </section>}
+  </section>,document.querySelector('.kb-app')||document.body)}
  </>;
 }
