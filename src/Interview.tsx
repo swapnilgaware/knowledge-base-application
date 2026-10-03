@@ -1,5 +1,6 @@
-import {useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
 import {Empty,Glyph} from './WorkspaceUI';
+import {interviewAnswers} from './interview-answers';
 
 // Demo content only. A future service will supply questions and verified sources.
 const demoQuestions = [
@@ -14,19 +15,42 @@ const demoQuestions = [
 ];
 const topics=['All topics',...new Set(demoQuestions.map(question=>question.topic))];
 
+function InterviewAnswer({question,onClose}:{question:typeof demoQuestions[number];onClose:()=>void}){
+ const dialog=useRef<HTMLDialogElement>(null);
+ useEffect(()=>{const element=dialog.current; element?.showModal();return()=>element?.close();},[]);
+ function closeAnswer(){dialog.current?.close();onClose();}
+ const answer=interviewAnswers[question.id];
+ return <dialog ref={dialog} className="kb-article-dialog kb-interview-answer" aria-labelledby="interview-answer-title" onCancel={event=>{event.preventDefault();closeAnswer();}}>
+  <button className="kb-dialog-close kb-icon-button" onClick={closeAnswer} aria-label="Close interview answer" autoFocus><Glyph name="close"/></button>
+  <span className="kb-overline">DEMO INTERVIEW · {question.topic.toUpperCase()} · {question.level.toUpperCase()}</span>
+  <h2 id="interview-answer-title">{question.question}</h2><p className="kb-answer-context">{question.context}</p>
+  <section><h3>Sample expected answer</h3>{answer.paragraphs.map(paragraph=><p key={paragraph}>{paragraph}</p>)}</section>
+  <section className="kb-answer-example"><h3>Example to explain it</h3><p>{answer.example}</p></section>
+  <section><h3>Key points to cover</h3><ul>{question.focus.map(point=><li key={point}>{point}</li>)}</ul></section>
+  <section className="kb-answer-followup"><h3>Practice a follow-up</h3><p>{answer.followUp}</p></section>
+  {answer.reference&&<a className="kb-answer-reference" href={answer.reference.url} target="_blank" rel="noopener noreferrer">{answer.reference.label} ↗</a>}
+  <p className="kb-answer-demo">Illustrative practice answer. Adapt it to the question and your experience; this is not a verified employer answer.</p>
+  <button className="kb-button secondary" onClick={closeAnswer}>Back to questions</button>
+ </dialog>;
+}
+
 export function Interview({query}:{query:string}){
  const [topic,setTopic]=useState('All topics');
+ const [opened,setOpened]=useState<typeof demoQuestions[number]|null>(null);
  const filtered=demoQuestions.filter(item=>(topic==='All topics'||item.topic===topic)&&[item.question,item.topic,item.context,item.level,...item.focus].join(' ').toLowerCase().includes(query.trim().toLowerCase()));
  return <>
   <div className="kb-page-heading"><div><span className="kb-overline">PREPARE WITH PURPOSE</span><h1>Interview<span>.</span></h1><p>A little practice today. A clearer answer tomorrow.</p></div><span className="kb-starter-badge"><span/> Demo collection</span></div>
   <div className="kb-interview-notice"><Glyph name="briefcase" size={21}/><p><strong>Latest interview questions</strong><span>Sample questions for now. Live questions, job matching, and verified sources will be added when the services are connected.</span></p></div>
   <div className="kb-feed-controls"><div>{topics.map(item=><button key={item} className={topic===item?'selected':''} aria-pressed={topic===item} onClick={()=>setTopic(item)}>{item}</button>)}</div><span>{filtered.length} questions</span></div>
   <div className="kb-interview-grid">{filtered.map(item=><article className="kb-interview-card" key={item.id}>
+   <button className="kb-interview-open" onClick={()=>setOpened(item)} aria-haspopup="dialog" aria-label={'Open answer: '+item.question}>
    <div className="kb-interview-meta"><span>{item.topic}</span><span>{item.level}</span></div>
    <h2>{item.question}</h2><p>{item.context}</p>
-   <details><summary>Answer pointers <Glyph name="chevron" size={14}/></summary><div><p>Try answering aloud first, then check whether you covered these points.</p><ul>{item.focus.map(point=><li key={point}>{point}</li>)}</ul></div></details>
+   <span className="kb-interview-open-label">Read expected answer <Glyph name="arrow" size={16}/></span>
    <footer>DEMO QUESTION · NOT A REPORTED INTERVIEW</footer>
+   </button>
   </article>)}</div>
   {!filtered.length&&<Empty title="No questions found.">Try another topic or search term.</Empty>}
+  {opened&&<InterviewAnswer question={opened} onClose={()=>setOpened(null)}/>}
  </>;
 }
