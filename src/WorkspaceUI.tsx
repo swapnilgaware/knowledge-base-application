@@ -1,9 +1,10 @@
 import {useEffect,useRef} from 'react';
 import type {ReactNode} from 'react';
 import type {Article} from './feed';
-export type IconName='feed'|'saved'|'books'|'map'|'note'|'search'|'arrow'|'plus'|'close'|'logout'|'menu'|'check'|'clock'|'spark'|'chevron'|'minus';
+export type IconName='feed'|'saved'|'books'|'map'|'note'|'search'|'arrow'|'plus'|'close'|'logout'|'menu'|'check'|'clock'|'spark'|'chevron'|'minus'|'briefcase';
 export function Glyph({name,size=20}:{name:IconName;size?:number}){
  const paths:Record<IconName,ReactNode>={
+ briefcase:<><rect x="3" y="7" width="18" height="14" rx="2"/><path d="M8 7V3h8v4M3 12h18M10 12v3h4v-3"/></>,
  feed:<><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></>,
  saved:<path d="M6 3h12v18l-6-4-6 4V3Z"/>,
  books:<><path d="M12 5C8 2 4 3 3 4v15c3-1 6-1 9 1m0-15c4-3 8-2 9-1v15c-3-1-6-1-9 1V5Z"/><path d="M6 8h3m6 0h3"/></>,
