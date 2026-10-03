@@ -8,7 +8,7 @@ export async function currentUser(): Promise<UserProfile | null> {
 }
 
 export function signIn(): void {
-  window.location.assign('/oauth2/authorization/keycloak');
+  window.location.replace('/oauth2/authorization/keycloak');
 }
 
 export async function signOut(): Promise<void> {

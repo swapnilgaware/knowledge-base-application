@@ -2,6 +2,7 @@
   "realm": "knowledge-base",
   "enabled": true,
   "displayName": "Knowledge Base",
+  "loginTheme": "knowledgebase",
   "registrationAllowed": false,
   "resetPasswordAllowed": false,
   "loginWithEmailAllowed": true,

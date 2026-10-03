@@ -29,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("dev")
 @Import(AuthenticationIntegrationTest.OidcTestConfiguration.class)
 class AuthenticationIntegrationTest {
-    static final String ISSUER = "http://127.0.0.1:8180/realms/knowledge-base";
+    static final String ISSUER = "http://127.0.0.1:5173/auth/realms/knowledge-base";
     @Autowired MockMvc mvc;
     @Autowired UserRepository users;
     @Autowired DevUserSeeder seeder;
@@ -108,6 +108,19 @@ class AuthenticationIntegrationTest {
         assertEquals(original.id(), reseeded.id());
         assertEquals(original.oidcSubject(), reseeded.oidcSubject());
         assertEquals(3, users.findAll().stream().filter(user -> user.email().endsWith("@example.com")).count());
+    }
+
+    @Test
+    void issuerMigrationPreservesOwnerAndRejectsUnexpectedIdentity() {
+        var profile = new com.knowledgebase.user.AppUser("fixture@example.com", "Fixture", "old-issuer", "known-subject");
+        var originalId = profile.id();
+        assertThrows(IllegalStateException.class, () -> profile.migrateIssuer("wrong-issuer", "known-subject", ISSUER));
+        assertThrows(IllegalStateException.class, () -> profile.migrateIssuer("old-issuer", "different-subject", ISSUER));
+        profile.migrateIssuer("old-issuer", "known-subject", ISSUER);
+        assertEquals(originalId, profile.id());
+        assertEquals("known-subject", profile.oidcSubject());
+        assertEquals(ISSUER, profile.oidcIssuer());
+        assertThrows(IllegalStateException.class, () -> profile.attachIdentity(ISSUER, "different-subject"));
     }
 
     @Autowired tools.jackson.databind.ObjectMapper json;

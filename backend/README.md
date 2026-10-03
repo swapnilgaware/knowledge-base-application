@@ -15,7 +15,7 @@ From the repository root:
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/setup-dev.ps1
 docker compose up -d
-# Wait for Keycloak discovery to respond before starting Spring Boot.
+# Start npm run dev in another terminal, then wait for app-origin Keycloak discovery.
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/backend.ps1 run
 ```
 
@@ -30,7 +30,7 @@ Elsewhere, select Java 25 and run `mvn spring-boot:run -Dspring-boot.run.profile
 | DB_URL | jdbc:postgresql://127.0.0.1:5433/knowledgebase |
 | DB_USER | knowledgebase |
 | DB_PASSWORD | Required; generated in local .env |
-| KEYCLOAK_ISSUER | http://127.0.0.1:8180/realms/knowledge-base |
+| KEYCLOAK_ISSUER | http://127.0.0.1:5173/auth/realms/knowledge-base |
 | KEYCLOAK_CLIENT_ID | knowledge-base-web |
 | KEYCLOAK_CLIENT_SECRET | Required; generated in local .env |
 | APP_FRONTEND_URL | http://127.0.0.1:5173; callback and logout origin |
@@ -59,12 +59,12 @@ The run script activates `dev`; no profile is activated by default. Compose read
 | GET / POST | /api/mindmaps | List owned maps or create a validated map |
 | GET / PUT | /api/mindmaps/{id} | Read or update an owned map; updates require its version |
 
-The frontend submits logout as a browser form with a fresh CSRF token so provider redirects work without cross-origin fetches. Passwords are entered only on Keycloak. There is no custom password-login endpoint and no browser token storage.
+The frontend submits logout as a browser form with a fresh CSRF token so provider redirects work without cross-origin fetches. The branded username/password form is served by local Keycloak under the application's `/auth` path. Passwords go only to that form, not to a custom Spring password endpoint. There is no custom password-login endpoint and no browser token storage.
 
-A production reverse proxy must route `/api`, `/oauth2`, and `/login/oauth2` on the frontend origin. Keep the registered callback and post-logout URIs aligned with `APP_FRONTEND_URL`.
+A production reverse proxy must route `/api`, `/oauth2`, `/login/oauth2`, the application realm under `/auth/realms/knowledge-base`, and login assets under `/auth/resources` on the frontend origin. Keep administrative Keycloak routes separate. The dev profile uses direct local token, userinfo, and JWKS addresses for backend exchanges while retaining the public app issuer. Keep the registered callback and post-logout URIs aligned with `APP_FRONTEND_URL`.
 
 ## Validation
 
 V3 adds shared books and chapters, account-specific reading progress and saved articles, and private mindmaps. Ownership is derived from the authenticated profile, never from an owner ID in the request. Mindmaps require one root, connected acyclic branches, unique IDs, and up to 60 ideas. Optimistic version checks reject stale updates with HTTP 409. All mutations require CSRF. The dev profile seeds the three bundled book editions; production has no automatic book seed or upload endpoint yet.
 
-Run `scripts/backend.ps1 test` from the root with PostgreSQL running, or `mvn test` here. Eight integration tests use mocked provider metadata and OIDC principals with real JPA/PostgreSQL persistence. They cover authentication, book contents, progress, bookmarks, account isolation, malformed maps, and edit conflicts. Browser checks exercise real Keycloak login, the feed, reading and mindmap editing on desktop and phone widths.
+Run `scripts/backend.ps1 test` from the root with PostgreSQL running, or `mvn test` here. Nine integration tests use mocked provider metadata and OIDC principals with real JPA/PostgreSQL persistence. They cover authentication, book contents, progress, bookmarks, account isolation, malformed maps, and edit conflicts. Browser checks exercise real Keycloak login, the feed, reading and mindmap editing on desktop and phone widths.

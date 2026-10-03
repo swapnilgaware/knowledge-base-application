@@ -48,6 +48,14 @@ public class AppUser {
     }
     public String role() { return role; }
 
+    /** Explicit development-host migration; never merge or relink accounts by email. */
+    public void migrateIssuer(String expectedIssuer, String expectedSubject, String newIssuer) {
+        if (!expectedIssuer.equals(oidcIssuer) || !expectedSubject.equals(oidcSubject)) {
+            throw new IllegalStateException("Unexpected identity during issuer migration");
+        }
+        oidcIssuer = newIssuer;
+    }
+
     public UserProfile profile() {
         return new UserProfile(id, email, displayName, role);
     }

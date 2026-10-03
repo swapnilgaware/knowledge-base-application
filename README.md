@@ -38,24 +38,23 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/setup-dev.ps1
 docker compose up -d
 ```
 
-Wait for [Keycloak discovery](http://127.0.0.1:8180/realms/knowledge-base/.well-known/openid-configuration) to respond, then start the backend:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/backend.ps1 run
-```
-
-In another terminal:
+Start the frontend first, in its own terminal:
 
 ```sh
 npm ci
 npm run dev
 ```
 
-Open [the application](http://127.0.0.1:5173/) or [sign in](http://127.0.0.1:5173/#/login). Choose **Continue with Keycloak**, then enter a demo user's credentials. The workspace restores your session on reload.
+Wait for [Keycloak discovery](http://127.0.0.1:5173/auth/realms/knowledge-base/.well-known/openid-configuration) to respond, then start the backend in another terminal:
 
-The [local Keycloak admin console](http://127.0.0.1:8180/admin/) uses username `admin` and the `KEYCLOAK_ADMIN_PASSWORD` from your local .env. The checked-in template is `infra/keycloak/realm-template.json`; setup generates the ignored credential-bearing import `infra/keycloak/knowledge-base-realm.json`. Import skips an existing realm; editing this fixture will not overwrite existing users or passwords. Use the admin console for subsequent changes.
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/backend.ps1 run
+```
+Open [the application](http://127.0.0.1:5173/) or [sign in](http://127.0.0.1:5173/#/login). Enter your email or username and password directly in the Knowledge Base sign-in form. The form uses our branding and stays under the application's `/auth` path; local Keycloak handles the credentials. The workspace restores your session on reload.
 
-Vite proxies `/api`, `/oauth2`, and `/login/oauth2` to Spring Boot on port 8080. Use `127.0.0.1` consistently because cookies, the issuer, and registered redirect URIs must match.
+The [local Keycloak admin console](http://127.0.0.1:8180/auth/admin/) uses username `admin` and the `KEYCLOAK_ADMIN_PASSWORD` from your local .env. The checked-in template is `infra/keycloak/realm-template.json`; setup generates the ignored credential-bearing import `infra/keycloak/knowledge-base-realm.json`. Import skips an existing realm; editing this fixture will not overwrite existing users or passwords. Use the admin console for subsequent changes.
+
+Vite proxies `/api`, `/oauth2`, and `/login/oauth2` to Spring Boot on port 8080. It also proxies the application realm and login assets under `/auth` to local Keycloak; admin endpoints are not proxied. Start Vite before Spring Boot, because development OIDC discovery uses the application origin. On an existing realm, select the `knowledgebase` login theme in Realm Settings → Themes; imports intentionally preserve existing accounts. Use `127.0.0.1` consistently because cookies, the issuer, and registered redirect URIs must match.
 
 ## Verify and build
 
@@ -69,7 +68,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/backend.ps1 test
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/backend.ps1 package
 ```
 
-Eight backend integration tests require PostgreSQL and use mocked OIDC metadata/principals. They verify authentication, profile mappings, CSRF, session invalidation, identity collision rejection, idempotent seeding, complete book chapters, reading progress, saved articles, mindmap ownership, invalid graphs, and stale edits. Browser checks cover real Keycloak login, bookmarks, reading progress restoration, mindmap creation/editing, unsaved navigation, search, and phone layout. CI provisions an isolated PostgreSQL service.
+Nine backend integration tests require PostgreSQL and use mocked OIDC metadata/principals. They verify authentication, profile mappings, CSRF, session invalidation, identity collision rejection, idempotent seeding, complete book chapters, reading progress, saved articles, mindmap ownership, invalid graphs, and stale edits. Browser checks cover real Keycloak login, bookmarks, reading progress restoration, mindmap creation/editing, unsaved navigation, search, and phone layout. CI provisions an isolated PostgreSQL service.
 
 On another OS, load the local .env variables into your process environment, set `JAVA_HOME` to Java 25, and run `mvn spring-boot:run -Dspring-boot.run.profiles=dev` from `backend/`.
 

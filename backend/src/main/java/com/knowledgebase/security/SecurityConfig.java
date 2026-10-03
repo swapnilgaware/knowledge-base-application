@@ -34,7 +34,13 @@ public class SecurityConfig {
                             response.getWriter().write("{\"message\":\"Request is not permitted.\"}");
                         }))
                 .oauth2Login(login -> login.defaultSuccessUrl(frontend + "/#/workspace", true)
-                        .failureUrl(frontend + "/?authError=1#/login"))
+                        .failureHandler((request, response, exception) -> {
+                            var cause = exception.getCause();
+                            org.slf4j.LoggerFactory.getLogger(SecurityConfig.class).warn(
+                                    "Sign-in failed: {} (cause: {})", exception.getClass().getSimpleName(),
+                                    cause == null ? "none" : cause.getClass().getSimpleName());
+                            response.sendRedirect(frontend + "/?authError=1#/login");
+                        }))
                 .logout(logout -> logout.logoutUrl("/api/auth/logout").deleteCookies("JSESSIONID")
                         .logoutSuccessHandler(handler))
                 .build();

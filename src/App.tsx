@@ -50,14 +50,12 @@ function Landing() {
 }
 
 function Login() {
-  const message = new URLSearchParams(window.location.search).has('authError')
-    ? 'Sign-in could not be completed. Please try again.' : '';
-  return <main className="login-page">
-    <section className="login-story"><Brand light/><div className="story-copy"><span className="eyebrow">COME BACK TO YOUR CURIOSITY</span><h1>A little reading.<br/>A lasting<br/><em>connection.</em></h1><p>A home for the things you discover,<br/>and the ideas they leave behind.</p></div><div className="story-graph" aria-hidden="true"><svg viewBox="0 0 500 280" fill="none"><path d="M60 180 200 90l180 80-85 90-95-170 160-60" stroke="#7a9275" strokeWidth="1"/><circle cx="60" cy="180" r="9" fill="#bad293"/><circle cx="200" cy="90" r="18" fill="#e8ecdf"/><circle cx="380" cy="170" r="11" fill="#bad293"/><circle cx="295" cy="260" r="7" fill="#829879"/><circle cx="360" cy="30" r="6" fill="#829879"/><circle cx="200" cy="90" r="33" stroke="#7a9275" strokeDasharray="3 6"/></svg><span className="graph-label graph-label-one">a new idea</span><span className="graph-label graph-label-two">a deeper understanding</span></div><span className="story-footer">YOUR PERSONAL LEARNING SPACE</span></section>
-    <section className="login-form-panel"><a href="#/" className="back-link"><Arrow back/> Back to home</a><div className="login-form-wrap"><span className="login-kicker">WELCOME TO KNOWLEDGE BASE</span><h2>Room for your<br/><em>next idea.</em></h2><p className="login-intro">Sign in to your personal learning space.</p><div className="preview-notice"><span/> Development accounts <p>Alex, Sam, and Taylor are available. Use alex@example.com, sam@example.com, or taylor@example.com with the local password from your .env file.</p></div><button className="button primary sign-in-submit" type="button" onClick={signIn}>Continue with Keycloak <Arrow/></button><p className="login-intro">You'll enter your email and password on the secure sign-in page.</p>{message&&<p className="auth-message" role="status">{message}</p>}<p className="login-bottom">A place to keep learning.<span aria-hidden="true">✧</span></p></div><footer className="login-footer">Thoughtfully built for a curious mind.</footer></section>
+  const failed = new URLSearchParams(window.location.search).has('authError');
+  useEffect(() => { if (!failed) signIn(); }, [failed]);
+  return <main className="session-loading" role="status">
+    {failed ? <><h1>Sign-in could not be completed.</h1><p>Please try again.</p><button className="button primary" onClick={signIn}>Return to sign in <Arrow/></button><p><a href="#/">Back to home</a></p></> : 'Opening sign in…'}
   </main>;
 }
-
 export default function App() {
   const [route, setRoute] = useState(window.location.hash);
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -79,7 +77,7 @@ export default function App() {
     if (!loading && route === '#/login' && user) window.location.hash = '#/workspace';
   }, [loading, route, user]);
   useEffect(()=>{ document.title=route.startsWith('#/workspace')?'Your workspace — Knowledge Base':route==='#/login'?'Sign in — Knowledge Base':'Knowledge Base — A home for your curiosity'; },[route]);
-  if (route.startsWith('#/workspace') && loading) return <main className="session-loading" role="status">Opening your workspace…</main>;
+  if ((route.startsWith('#/workspace') || route === '#/login') && loading) return <main className="session-loading" role="status">Opening your workspace…</main>;
   if (user && route !== '#/login') return <Workspace user={user} route={route.startsWith('#/workspace') ? route : '#/workspace'}/>;
   return route==='#/login'?<Login/>:<Landing/>;
 }

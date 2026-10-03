@@ -31,6 +31,12 @@ public class DevUserSeeder implements ApplicationRunner {
     private void seed(String email, String name, String subject) {
         var profile = users.findByEmailIgnoreCase(email)
                 .orElseGet(() -> new AppUser(email, name, issuer, subject));
+        // This release moves the same local realm behind the app's /auth proxy.
+        // Only the three known fixture subjects on the exact old local issuer may migrate.
+        if ("http://127.0.0.1:8180/realms/knowledge-base".equals(profile.oidcIssuer())
+                && "http://127.0.0.1:5173/auth/realms/knowledge-base".equals(issuer)) {
+            profile.migrateIssuer("http://127.0.0.1:8180/realms/knowledge-base", subject, issuer);
+        }
         profile.attachIdentity(issuer, subject);
         users.save(profile);
     }

@@ -5,6 +5,12 @@ spring:
   security:
     oauth2:
       client:
+        provider:
+          keycloak:
+            # Browser URLs use the app origin; server exchanges stay on the local service.
+            token-uri: http://127.0.0.1:8180/auth/realms/knowledge-base/protocol/openid-connect/token
+            jwk-set-uri: http://127.0.0.1:8180/auth/realms/knowledge-base/protocol/openid-connect/certs
+            user-info-uri: http://127.0.0.1:8180/auth/realms/knowledge-base/protocol/openid-connect/userinfo
         registration:
           keycloak:
             client-secret: ${KEYCLOAK_CLIENT_SECRET}
