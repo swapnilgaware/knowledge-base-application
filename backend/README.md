@@ -50,6 +50,14 @@ The run script activates `dev`; no profile is activated by default. Compose read
 | GET | /login/oauth2/code/keycloak | Spring Security authorization-code callback |
 | GET | /api/auth/me | Safe current profile; anonymous sessions return 401 |
 | POST | /api/auth/logout | Requires CSRF; invalidates session and redirects to Keycloak |
+| GET | /api/books | Shared catalog with the current account's reading progress |
+| GET | /api/books/{id}/contents | Chapter headings, including edition credits |
+| GET | /api/books/{id}/chapters/{number} | One chapter as readable JSON; zero-based chapter index |
+| PUT | /api/books/{id}/progress | Save chapter position and completion; requires CSRF |
+| GET | /api/saved-posts | Current account's saved starter-guide IDs |
+| PUT / DELETE | /api/saved-posts/{postId} | Save or unsave a known guide; requires CSRF |
+| GET / POST | /api/mindmaps | List owned maps or create a validated map |
+| GET / PUT | /api/mindmaps/{id} | Read or update an owned map; updates require its version |
 
 The frontend submits logout as a browser form with a fresh CSRF token so provider redirects work without cross-origin fetches. Passwords are entered only on Keycloak. There is no custom password-login endpoint and no browser token storage.
 
@@ -57,4 +65,6 @@ A production reverse proxy must route `/api`, `/oauth2`, and `/login/oauth2` on 
 
 ## Validation
 
-Run `scripts/backend.ps1 test` from the root with PostgreSQL running, or `mvn test` here. Five integration tests use mocked provider metadata and OIDC principals with real JPA/PostgreSQL persistence. Browser checks exercise real Keycloak authorization code login for all three users, rejected credentials, session restoration, and logout.
+V3 adds shared books and chapters, account-specific reading progress and saved articles, and private mindmaps. Ownership is derived from the authenticated profile, never from an owner ID in the request. Mindmaps require one root, connected acyclic branches, unique IDs, and up to 60 ideas. Optimistic version checks reject stale updates with HTTP 409. All mutations require CSRF. The dev profile seeds the three bundled book editions; production has no automatic book seed or upload endpoint yet.
+
+Run `scripts/backend.ps1 test` from the root with PostgreSQL running, or `mvn test` here. Eight integration tests use mocked provider metadata and OIDC principals with real JPA/PostgreSQL persistence. They cover authentication, book contents, progress, bookmarks, account isolation, malformed maps, and edit conflicts. Browser checks exercise real Keycloak login, the feed, reading and mindmap editing on desktop and phone widths.

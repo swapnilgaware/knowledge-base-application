@@ -24,7 +24,11 @@ Exit: a user can sign in and sign out of a real account, with access checks enfo
 
 ## 2. Private account and multi-device library
 
-- [ ] Authenticated library API, PostgreSQL schema, and ownership enforcement.
+- [x] Daily.dev-inspired feed, original guides, filters, search, and persisted saved articles.
+- [x] Authenticated demo book catalog and onsite chapter reader with saved reading progress.
+- [x] Private editable mindmaps with version checks and account-isolation tests.
+- [x] Responsive phone and desktop workspace navigation.
+- [x] JPA library schema and ownership enforcement for private records.
 - [ ] Notes and reading records with stable IDs and revisions.
 - [ ] Topic tags, search, reading status, and backup/export.
 - [ ] Persist notes and reading status across phone and desktop.

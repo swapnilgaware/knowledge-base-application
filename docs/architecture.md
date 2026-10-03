@@ -1,6 +1,6 @@
 # Target architecture
 
-The current implementation includes the landing page, Keycloak OpenID Connect login, and a minimal authenticated welcome screen. Java 25 / Spring Boot, Spring Security, JPA/Hibernate, PostgreSQL, and Flyway form the backend foundation. The graph, reading library, and agents below are proposed future components.
+The current implementation includes the landing page, Keycloak OpenID Connect login, a daily.dev-inspired feed, saved articles, an onsite book reader with reading progress, and private editable mindmaps. Java 25 / Spring Boot, Spring Security, JPA/Hibernate, PostgreSQL, and Flyway form the backend foundation. The evidence graph, book ingestion, and agents below are proposed future components. User-created mindmaps are not a GraphRAG index.
 
 ```mermaid
 flowchart LR
@@ -38,7 +38,7 @@ Separate graph storage adds operational cost. Start with a lexical/vector baseli
 
 ## Data model
 
-Every persisted server record carries a `workspace_id`; authorization is enforced before retrieval as well as before writes. Never accept an owner ID from a model as authority.
+Current private records carry a `user_id` derived from the authenticated profile; shared demo books contain no private user data. Authorization is enforced before private reads and writes. Future collaborative records will use a `workspace_id` with membership checks. Never accept an owner ID from a model as authority. The following source and retrieval models remain planned.
 
 - **Source:** type, title, author, canonical URL or private object key, rights/access basis, content hash, version, extraction coverage, timestamps.
 - **Chunk:** source ID and version, stable locator (page/section/offset), text hash, normalized text, embedding model and version.

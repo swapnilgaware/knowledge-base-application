@@ -109,4 +109,105 @@ class AuthenticationIntegrationTest {
         assertEquals(original.oidcSubject(), reseeded.oidcSubject());
         assertEquals(3, users.findAll().stream().filter(user -> user.email().endsWith("@example.com")).count());
     }
+
+    @Autowired tools.jackson.databind.ObjectMapper json;
+
+    private org.springframework.test.web.servlet.request.RequestPostProcessor identity(int user) {
+        return oidcLogin().idToken(token -> token.issuer(ISSUER)
+                .subject("10000000-0000-4000-8000-00000000000" + user));
+    }
+
+    @Test
+    void libraryAndWorkspaceRoutesRequireLogin() throws Exception {
+        for (String path : new String[]{"/api/books", "/api/books/alice/chapters/0", "/api/mindmaps", "/api/saved-posts"}) {
+            mvc.perform(get(path)).andExpect(status().isUnauthorized());
+        }
+        mvc.perform(get("/api/books").with(identity(1)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(3));
+        mvc.perform(get("/api/books/alice/contents").with(identity(1)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(13));
+        mvc.perform(get("/api/books/alice/chapters/0").with(identity(1)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("CHAPTER I. Down the Rabbit-Hole"))
+                .andExpect(jsonPath("$.content").value(org.hamcrest.Matchers.containsString("Alice was beginning")))
+                .andExpect(header().doesNotExist("Content-Disposition"));
+        for (String id : new String[]{"alice", "looking-glass", "sherlock"}) {
+            mvc.perform(get("/api/books/" + id + "/chapters/11").with(identity(1)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content").value(org.hamcrest.Matchers.not(org.hamcrest.Matchers.emptyString())));
+            mvc.perform(get("/api/books/" + id + "/chapters/12").with(identity(1)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content").value(org.hamcrest.Matchers.containsString("Project Gutenberg")));
+        }
+    }
+
+    @Test
+    @org.springframework.transaction.annotation.Transactional
+    void readingPositionsAndBookmarksArePrivateAndPersisted() throws Exception {
+        var samBooks = mvc.perform(get("/api/books").with(identity(2))).andReturn().getResponse().getContentAsString();
+        var samSaved = mvc.perform(get("/api/saved-posts").with(identity(2))).andReturn().getResponse().getContentAsString();
+        mvc.perform(put("/api/books/alice/progress").with(identity(1))
+                        .contentType("application/json").content("{\"chapterNumber\":1,\"completed\":false}"))
+                .andExpect(status().isForbidden());
+        mvc.perform(put("/api/books/alice/progress").with(identity(1)).with(csrf())
+                        .contentType("application/json").content("{\"chapterNumber\":1,\"completed\":false}"))
+                .andExpect(status().isOk());
+        mvc.perform(get("/api/books").with(identity(1)))
+                .andExpect(jsonPath("$[?(@.id == 'alice')].currentChapter", org.hamcrest.Matchers.hasItem(1)));
+        assertEquals(samBooks, mvc.perform(get("/api/books").with(identity(2))).andReturn().getResponse().getContentAsString());
+        mvc.perform(put("/api/books/alice/progress").with(identity(1)).with(csrf())
+                        .contentType("application/json").content("{\"chapterNumber\":99,\"completed\":false}"))
+                .andExpect(status().isBadRequest());
+        mvc.perform(put("/api/books/alice/progress").with(identity(1)).with(csrf())
+                        .contentType("application/json").content("{\"chapterNumber\":1,\"completed\":true}"))
+                .andExpect(status().isBadRequest());
+        mvc.perform(put("/api/saved-posts/graph-rag").with(identity(1)).with(csrf())).andExpect(status().isOk());
+        mvc.perform(put("/api/saved-posts/graph-rag").with(identity(1)).with(csrf())).andExpect(status().isOk());
+        var alexSaved = json.readTree(mvc.perform(get("/api/saved-posts").with(identity(1))).andReturn().getResponse().getContentAsString());
+        int found = 0;
+        for (var item : alexSaved) if (item.asText().equals("graph-rag")) found++;
+        assertEquals(1, found);
+        assertEquals(samSaved, mvc.perform(get("/api/saved-posts").with(identity(2))).andReturn().getResponse().getContentAsString());
+        mvc.perform(delete("/api/saved-posts/graph-rag").with(identity(1)).with(csrf())).andExpect(status().isOk());
+        mvc.perform(get("/api/saved-posts").with(identity(1)))
+                .andExpect(jsonPath("$", org.hamcrest.Matchers.not(org.hamcrest.Matchers.hasItem("graph-rag"))));
+    }
+
+    @Test
+    @org.springframework.transaction.annotation.Transactional
+    void mindmapsEnforceOwnershipValidTreesAndVersionChecks() throws Exception {
+        String body = """
+            {"title":"Integration map","nodes":[
+              {"id":"root","parentId":null,"label":"Integration map"},
+              {"id":"one","parentId":"root","label":"Evidence"}
+            ],"version":0}
+            """;
+        mvc.perform(post("/api/mindmaps").with(identity(1)).contentType("application/json").content(body))
+                .andExpect(status().isForbidden());
+        var created = mvc.perform(post("/api/mindmaps").with(identity(1)).with(csrf())
+                        .contentType("application/json").content(body))
+                .andExpect(status().isCreated()).andReturn();
+        String id = json.readTree(created.getResponse().getContentAsString()).get("id").asText();
+        mvc.perform(get("/api/mindmaps/" + id).with(identity(1))).andExpect(status().isOk());
+        mvc.perform(get("/api/mindmaps/" + id).with(identity(2))).andExpect(status().isNotFound());
+        mvc.perform(put("/api/mindmaps/" + id).with(identity(2)).with(csrf())
+                        .contentType("application/json").content(body)).andExpect(status().isNotFound());
+        mvc.perform(put("/api/mindmaps/" + id).with(identity(1)).with(csrf())
+                        .contentType("application/json").content(body.replace("Evidence", "Updated evidence")))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.version").value(1));
+        mvc.perform(put("/api/mindmaps/" + id).with(identity(1)).with(csrf())
+                        .contentType("application/json").content(body)).andExpect(status().isConflict());
+        String cycle = """
+            {"title":"Invalid cycle","nodes":[
+              {"id":"root","parentId":null,"label":"Root"},
+              {"id":"a","parentId":"b","label":"A"},
+              {"id":"b","parentId":"a","label":"B"}
+            ],"version":0}
+            """;
+        mvc.perform(post("/api/mindmaps").with(identity(1)).with(csrf())
+                        .contentType("application/json").content(cycle)).andExpect(status().isBadRequest());
+        mvc.perform(get("/api/mindmaps/" + id).with(identity(1)))
+                .andExpect(jsonPath("$.nodes[1].label").value("Updated evidence"));
+    }
+
 }

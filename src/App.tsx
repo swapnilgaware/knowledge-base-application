@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
-import { currentUser, signIn, signOut } from './auth';
+import { currentUser, signIn } from './auth';
+import Workspace from './Workspace';
 import type { UserProfile } from './auth';
 
 function Arrow({ back = false }: { back?: boolean }) {
@@ -74,23 +75,11 @@ export default function App() {
     return ()=>window.removeEventListener('hashchange',navigate);
   },[]);
   useEffect(() => {
-    if (!loading && route === '#/workspace' && !user) window.location.hash = '#/login';
+    if (!loading && route.startsWith('#/workspace') && !user) window.location.hash = '#/login';
     if (!loading && route === '#/login' && user) window.location.hash = '#/workspace';
   }, [loading, route, user]);
-  useEffect(()=>{ document.title=route==='#/workspace'?'Your workspace — Knowledge Base':route==='#/login'?'Sign in — Knowledge Base':'Knowledge Base — A home for your curiosity'; },[route]);
-  if (route === '#/workspace' && loading) return <main className="session-loading" role="status">Opening your workspace…</main>;
-  if (route === '#/workspace' && user) return <Workspace user={user}/>;
+  useEffect(()=>{ document.title=route.startsWith('#/workspace')?'Your workspace — Knowledge Base':route==='#/login'?'Sign in — Knowledge Base':'Knowledge Base — A home for your curiosity'; },[route]);
+  if (route.startsWith('#/workspace') && loading) return <main className="session-loading" role="status">Opening your workspace…</main>;
+  if (user && route !== '#/login') return <Workspace user={user} route={route.startsWith('#/workspace') ? route : '#/workspace'}/>;
   return route==='#/login'?<Login/>:<Landing/>;
-}
-
-function Workspace({user}: {user:UserProfile}) {
-  const [error, setError] = useState('');
-  const [busy, setBusy] = useState(false);
-  async function logout() {
-    setBusy(true);
-    try { await signOut(); }
-    catch { setError('Unable to sign out. Please try again.'); }
-    finally { setBusy(false); }
-  }
-  return <div className="landing workspace"><header className="site-header"><Brand/><button className="nav-login" onClick={logout} disabled={busy}>{busy?'Signing out…':'Sign out'}<Arrow/></button></header><main className="workspace-welcome"><span className="eyebrow">YOUR PERSONAL LEARNING SPACE</span><h1>Welcome, <em>{user.displayName.split(' ')[0]}.</em></h1><p>You’re signed in as <strong>{user.email}</strong>.</p><div className="workspace-ready"><Mark/><h2>Your space is ready.</h2><p>We’ll build your library, notes, and connected knowledge here, one feature at a time.</p></div>{error&&<p className="auth-message" role="alert">{error}</p>}</main></div>;
 }
