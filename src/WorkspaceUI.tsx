@@ -1,9 +1,10 @@
 import {useEffect,useRef} from 'react';
 import type {ReactNode} from 'react';
 import type {Article} from './feed';
-export type IconName='feed'|'saved'|'books'|'map'|'note'|'search'|'arrow'|'plus'|'close'|'logout'|'menu'|'check'|'clock'|'spark'|'chevron'|'minus'|'briefcase';
+export type IconName='feed'|'saved'|'books'|'map'|'note'|'search'|'arrow'|'plus'|'close'|'logout'|'menu'|'check'|'clock'|'spark'|'chevron'|'minus'|'briefcase'|'chat';
 export function Glyph({name,size=20}:{name:IconName;size?:number}){
  const paths:Record<IconName,ReactNode>={
+ chat:<path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H5l-3 2v-7.5A8.5 8.5 0 0 1 10.5 6H16a5 5 0 0 1 5 5.5ZM7 11h9M7 15h6"/>,
  briefcase:<><rect x="3" y="7" width="18" height="14" rx="2"/><path d="M8 7V3h8v4M3 12h18M10 12v3h4v-3"/></>,
  feed:<><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></>,
  saved:<path d="M6 3h12v18l-6-4-6 4V3Z"/>,
