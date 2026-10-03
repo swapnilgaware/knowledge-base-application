@@ -1,0 +1,15 @@
+# Local development only.
+spring:
+  datasource:
+    password: ${DB_PASSWORD}
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            client-secret: ${KEYCLOAK_CLIENT_SECRET}
+server:
+  servlet:
+    session:
+      cookie:
+        secure: false

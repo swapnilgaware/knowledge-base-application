@@ -15,6 +15,9 @@ data/
 uploads/
 exports/
 backups/
+.tools/
+backend/target/
+infra/keycloak/knowledge-base-realm.json
 *.sqlite*
 *.db
 knowledge-base-backup-*.json

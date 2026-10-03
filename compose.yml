@@ -1,0 +1,51 @@
+name: knowledge-base
+services:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: knowledgebase
+      POSTGRES_USER: knowledgebase
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Run scripts/setup-dev.ps1 first}
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U knowledgebase -d knowledgebase"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  keycloak-postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?Run scripts/setup-dev.ps1 first}
+    volumes:
+      - keycloak-postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak -d keycloak"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.8.0
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-postgres:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?Run scripts/setup-dev.ps1 first}
+      KC_HOSTNAME: http://127.0.0.1:8180
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?Run scripts/setup-dev.ps1 first}
+    ports:
+      - "127.0.0.1:8180:8080"
+    volumes:
+      - ./infra/keycloak/knowledge-base-realm.json:/opt/keycloak/data/import/knowledge-base-realm.json:ro
+    depends_on:
+      keycloak-postgres:
+        condition: service_healthy
+volumes:
+  postgres-data:
+  keycloak-postgres-data:

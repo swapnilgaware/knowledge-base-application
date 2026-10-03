@@ -1,0 +1,70 @@
+{
+  "realm": "knowledge-base",
+  "enabled": true,
+  "displayName": "Knowledge Base",
+  "registrationAllowed": false,
+  "resetPasswordAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "sslRequired": "external",
+  "clients": [
+    {
+      "clientId": "knowledge-base-web",
+      "name": "Knowledge Base",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://127.0.0.1:5173/login/oauth2/code/keycloak"
+      ],
+      "webOrigins": [
+        "http://127.0.0.1:5173"
+      ],
+      "attributes": {
+        "post.logout.redirect.uris": "http://127.0.0.1:5173/"
+      },
+      "defaultClientScopes": [
+        "web-origins",
+        "profile",
+        "email",
+        "roles"
+      ]
+    }
+  ],
+  "users": [
+    {
+      "id": "10000000-0000-4000-8000-000000000001",
+      "username": "alex@example.com",
+      "email": "alex@example.com",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "Alex",
+      "lastName": "Morgan",
+      "requiredActions": []
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000002",
+      "username": "sam@example.com",
+      "email": "sam@example.com",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "Sam",
+      "lastName": "Rivera",
+      "requiredActions": []
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000003",
+      "username": "taylor@example.com",
+      "email": "taylor@example.com",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "Taylor",
+      "lastName": "Chen",
+      "requiredActions": []
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
-import type { FormEvent, ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import { currentUser, signIn, signOut } from './auth';
+import type { UserProfile } from './auth';
 
 function Arrow({ back = false }: { back?: boolean }) {
   return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d={back ? 'M20 12H4m0 0 6-6m-6 6 6 6' : 'M4 12h16m0 0-6-6m6 6-6 6'} stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>;
@@ -47,26 +49,48 @@ function Landing() {
 }
 
 function Login() {
-  const [showPassword, setShowPassword] = useState(false);
-  const [message, setMessage] = useState('');
-  function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setMessage('The sign-in design is ready. Account access will be connected next. Your details have not been stored or sent.');
-    event.currentTarget.reset();
-  }
+  const message = new URLSearchParams(window.location.search).has('authError')
+    ? 'Sign-in could not be completed. Please try again.' : '';
   return <main className="login-page">
     <section className="login-story"><Brand light/><div className="story-copy"><span className="eyebrow">COME BACK TO YOUR CURIOSITY</span><h1>A little reading.<br/>A lasting<br/><em>connection.</em></h1><p>A home for the things you discover,<br/>and the ideas they leave behind.</p></div><div className="story-graph" aria-hidden="true"><svg viewBox="0 0 500 280" fill="none"><path d="M60 180 200 90l180 80-85 90-95-170 160-60" stroke="#7a9275" strokeWidth="1"/><circle cx="60" cy="180" r="9" fill="#bad293"/><circle cx="200" cy="90" r="18" fill="#e8ecdf"/><circle cx="380" cy="170" r="11" fill="#bad293"/><circle cx="295" cy="260" r="7" fill="#829879"/><circle cx="360" cy="30" r="6" fill="#829879"/><circle cx="200" cy="90" r="33" stroke="#7a9275" strokeDasharray="3 6"/></svg><span className="graph-label graph-label-one">a new idea</span><span className="graph-label graph-label-two">a deeper understanding</span></div><span className="story-footer">YOUR PERSONAL LEARNING SPACE</span></section>
-    <section className="login-form-panel"><a href="#/" className="back-link"><Arrow back/> Back to home</a><div className="login-form-wrap"><span className="login-kicker">WELCOME TO KNOWLEDGE BASE</span><h2>Room for your<br/><em>next idea.</em></h2><p className="login-intro">Sign in to your personal learning space.</p><div className="preview-notice"><span/> Sign-in preview <p>Account access is coming next. Use sample details to explore the form.</p></div><button className="google-button" type="button" onClick={()=>setMessage('Google sign-in will be available when account access is connected.')}><svg width="19" height="19" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.6 12.2c0-.7-.1-1.4-.2-2.2H12v4.3h6a5.2 5.2 0 0 1-2.3 3.4v2.8h3.6c2.1-2 3.3-4.8 3.3-8.3Z"/><path fill="#34A853" d="M12 23c3 0 5.6-1 7.4-2.6l-3.6-2.8c-1 .7-2.2 1-3.8 1-2.9 0-5.3-2-6.2-4.5H2.1v2.9C4 20.6 7.7 23 12 23Z"/><path fill="#FBBC05" d="M5.8 14.1a6.6 6.6 0 0 1 0-4.2V7H2.1A11 11 0 0 0 1 12c0 1.8.4 3.5 1.1 5l3.7-2.9Z"/><path fill="#EA4335" d="M12 5.4c1.7 0 3.1.6 4.2 1.6l3.2-3.2A10.7 10.7 0 0 0 12 1C7.7 1 4 3.4 2.1 7l3.7 2.9C6.7 7.3 9.1 5.4 12 5.4Z"/></svg>Continue with Google</button><div className="form-divider"><span>or with email</span></div><form onSubmit={submit}><label htmlFor="email">Email address</label><input id="email" name="email" type="email" autoComplete="off" placeholder="you@example.com" required maxLength={254}/><label htmlFor="password">Password</label><div className="password-field"><input id="password" name="password" type={showPassword?'text':'password'} autoComplete="off" placeholder="Enter a sample password" required maxLength={200}/><button type="button" aria-label={showPassword?'Hide password':'Show password'} aria-pressed={showPassword} onClick={()=>setShowPassword(!showPassword)}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>{showPassword&&<path d="m3 3 18 18"/>}</svg></button></div><button className="button primary sign-in-submit" type="submit">Sign in <Arrow/></button></form>{message&&<p className="auth-message" role="status">{message}</p>}<p className="login-bottom">A place to keep learning.<span aria-hidden="true">✧</span></p></div><footer className="login-footer">Thoughtfully built for a curious mind.</footer></section>
+    <section className="login-form-panel"><a href="#/" className="back-link"><Arrow back/> Back to home</a><div className="login-form-wrap"><span className="login-kicker">WELCOME TO KNOWLEDGE BASE</span><h2>Room for your<br/><em>next idea.</em></h2><p className="login-intro">Sign in to your personal learning space.</p><div className="preview-notice"><span/> Development accounts <p>Alex, Sam, and Taylor are available. Use alex@example.com, sam@example.com, or taylor@example.com with the local password from your .env file.</p></div><button className="button primary sign-in-submit" type="button" onClick={signIn}>Continue with Keycloak <Arrow/></button><p className="login-intro">You'll enter your email and password on the secure sign-in page.</p>{message&&<p className="auth-message" role="status">{message}</p>}<p className="login-bottom">A place to keep learning.<span aria-hidden="true">✧</span></p></div><footer className="login-footer">Thoughtfully built for a curious mind.</footer></section>
   </main>;
 }
 
 export default function App() {
   const [route, setRoute] = useState(window.location.hash);
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    let active = true;
+    currentUser().then(profile => { if (active) setUser(profile); })
+      .catch(() => { if (active) setUser(null); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, []);
   useEffect(()=>{
     const navigate=()=>{setRoute(window.location.hash); if(window.location.hash.startsWith('#/')) window.scrollTo(0,0);};
     window.addEventListener('hashchange',navigate);
     return ()=>window.removeEventListener('hashchange',navigate);
   },[]);
-  useEffect(()=>{ document.title=route==='#/login'?'Sign in — Knowledge Base':'Knowledge Base — A home for your curiosity'; },[route]);
+  useEffect(() => {
+    if (!loading && route === '#/workspace' && !user) window.location.hash = '#/login';
+    if (!loading && route === '#/login' && user) window.location.hash = '#/workspace';
+  }, [loading, route, user]);
+  useEffect(()=>{ document.title=route==='#/workspace'?'Your workspace — Knowledge Base':route==='#/login'?'Sign in — Knowledge Base':'Knowledge Base — A home for your curiosity'; },[route]);
+  if (route === '#/workspace' && loading) return <main className="session-loading" role="status">Opening your workspace…</main>;
+  if (route === '#/workspace' && user) return <Workspace user={user}/>;
   return route==='#/login'?<Login/>:<Landing/>;
+}
+
+function Workspace({user}: {user:UserProfile}) {
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+  async function logout() {
+    setBusy(true);
+    try { await signOut(); }
+    catch { setError('Unable to sign out. Please try again.'); }
+    finally { setBusy(false); }
+  }
+  return <div className="landing workspace"><header className="site-header"><Brand/><button className="nav-login" onClick={logout} disabled={busy}>{busy?'Signing out…':'Sign out'}<Arrow/></button></header><main className="workspace-welcome"><span className="eyebrow">YOUR PERSONAL LEARNING SPACE</span><h1>Welcome, <em>{user.displayName.split(' ')[0]}.</em></h1><p>You’re signed in as <strong>{user.email}</strong>.</p><div className="workspace-ready"><Mark/><h2>Your space is ready.</h2><p>We’ll build your library, notes, and connected knowledge here, one feature at a time.</p></div>{error&&<p className="auth-message" role="alert">{error}</p>}</main></div>;
 }

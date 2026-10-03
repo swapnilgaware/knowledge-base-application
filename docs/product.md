@@ -14,7 +14,7 @@ A learner who reads books and online articles, writes notes, and wants to connec
 | Understand | Read a short overview or chapter-level summary with evidence | Planned |
 | Connect | Explore entities and relationships; ask questions across sources | Planned |
 | Study | Set a learning objective; follow a prerequisite-aware plan; review cards | Planned |
-| Continue anywhere | Sign in on another device and resume reading or editing | Login UI preview; real auth and sync planned |
+| Continue anywhere | Sign in on another device and resume reading or editing | Local PostgreSQL-backed login implemented; library and sync planned |
 
 ## Summary output
 

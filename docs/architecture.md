@@ -1,14 +1,16 @@
 # Target architecture
 
-This is a design for subsequent milestones. The current implementation is a landing page and login UI preview. No backend, private workspace, or agent workflow is running.
+The current implementation includes the landing page, Keycloak OpenID Connect login, and a minimal authenticated welcome screen. Java 25 / Spring Boot, Spring Security, JPA/Hibernate, PostgreSQL, and Flyway form the backend foundation. The graph, reading library, and agents below are proposed future components.
 
 ```mermaid
 flowchart LR
   UI[Phone / desktop PWA] --> API[Authenticated API]
+  UI --> KC[Keycloak login]
+  API --> KC
   API --> DB[(PostgreSQL + pgvector)]
   API --> OBJ[(Private object storage)]
   API --> JOBS[Durable job queue]
-  JOBS --> WORK[LangGraph workers]
+  JOBS --> WORK[Agent workflow workers]
   WORK --> TOOLS[RSS / HTML / browser / book parsers]
   WORK --> MODEL[Model provider adapter]
   WORK --> DB
@@ -24,15 +26,15 @@ flowchart LR
 | Component | Proposed implementation | Responsibility |
 | --- | --- | --- |
 | Client | React + TypeScript; add PWA support | Capture, read, annotate, graph exploration, study |
-| API | Python + FastAPI | Auth, workspace authorization, validation, signed file access |
+| API | Java 25 + Spring Boot + Spring Data JPA | Auth, workspace authorization, validation, signed file access |
 | Record store | PostgreSQL | Sources, notes, versions, jobs, study progress, audit metadata |
 | Vector search | pgvector | Chunk/entity embeddings and similarity retrieval |
 | Graph | Neo4j | Typed concepts and evidence-backed relationships |
 | Files | S3-compatible private object storage | Original files, normalized text, extraction artifacts |
-| Workers | LangGraph with durable checkpoints | Bounded research and learning workflows |
+| Workers | Java agent workflow runtime; implementation to be selected | Bounded research and learning workflows with checkpoints |
 | Jobs | Durable queue with retries and idempotency | Imports, reindexing, scheduled discovery, deletion propagation |
 
-Separate graph storage adds operational cost. Start with a lexical/vector baseline; add graph traversal only after an evaluation set demonstrates useful cross-source relationships. If the graph workload remains small, evaluate relational edge tables before committing to a second database. No database or provider is provisioned by this repository.
+Separate graph storage adds operational cost. Start with a lexical/vector baseline; add graph traversal only after an evaluation set demonstrates useful cross-source relationships. If the graph workload remains small, evaluate relational edge tables before committing to a second database. PostgreSQL is provisioned locally; graph storage and model providers are not configured yet.
 
 ## Data model
 
@@ -72,7 +74,7 @@ Later, build versioned community summaries for broad questions spanning the libr
 
 ## Multi-agent execution
 
-Use a typed state graph and bounded specialist steps, with durable checkpoints, cancellation, and per-run budgets. [LangGraph](https://docs.langchain.com/oss/python/langgraph/overview) provides orchestration and persistence primitives; model choice and retrieval policy remain application responsibilities. See [agent contracts](agents.md).
+Use a typed state graph and bounded specialist steps, with durable checkpoints, cancellation, and per-run budgets. Select a Java-compatible orchestration implementation in the agent milestone; model choice and retrieval policy remain application responsibilities. See [agent contracts](agents.md).
 
 ## Content and execution boundaries
 

@@ -7,21 +7,24 @@ Each milestone should be a independently usable increment. Checkboxes describe i
 - [x] Public repository, product requirements, architecture, and agent roles.
 - [x] Local Git checkout connected to GitHub.
 - [x] Responsive landing page and login UI preview.
-- [x] Navigation, email form validation, and password visibility control.
+- [x] Landing navigation and Keycloak sign-in entry page.
 - [x] Type checking and production build.
 
-## 1. Real login
+## 1. Database-backed login
 
-- [ ] Connect an authentication provider for email and Google sign-in.
-- [ ] Account creation, email verification, password recovery, and sign-out.
-- [ ] Persist sessions securely and protect authenticated routes.
-- [ ] Verify success, expired sessions, failures, and account isolation.
+- [x] Java 25 / Spring Boot backend and PostgreSQL with Flyway migrations.
+- [x] Spring Data JPA user model and derived repository methods; no native queries.
+- [x] Three Keycloak development users and idempotent JPA profile seeding.
+- [x] Keycloak authorization code login, current-user endpoint, session restore, and provider sign-out.
+- [x] HttpOnly sessions, login session rotation, CSRF, and protected API routes.
+- [ ] Account creation, email verification, password recovery, and Google sign-in.
+- [ ] Deployment session persistence and login rate limits.
 
 Exit: a user can sign in and sign out of a real account, with access checks enforced by the backend.
 
 ## 2. Private account and multi-device library
 
-- [ ] enAuthenticated API, PostgreSQL schema, and ownership enforcemt.
+- [ ] Authenticated library API, PostgreSQL schema, and ownership enforcement.
 - [ ] Notes and reading records with stable IDs and revisions.
 - [ ] Topic tags, search, reading status, and backup/export.
 - [ ] Persist notes and reading status across phone and desktop.
